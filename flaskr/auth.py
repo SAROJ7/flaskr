@@ -4,7 +4,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 
-from werkzeug.security import check_passwork_hash, generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from flaskr.db import get_db
 
@@ -57,7 +57,7 @@ def login():
 
         if user is None:
             error = 'Incorrect Username.'
-        elif not check_passwork_hash(user['password'], password):
+        elif not check_password_hash(user['password'], password):
             error = 'Incorrect Password'
 
         if error is None:
@@ -85,4 +85,12 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(*args , **kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+    return wrapped_view
 
